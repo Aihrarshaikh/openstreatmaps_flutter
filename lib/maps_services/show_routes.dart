@@ -1,16 +1,18 @@
+import 'dart:async';
 import 'dart:core';
+import 'package:biker_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:open_route_service/open_route_service.dart';
-late Future<List<Polyline>> polylines;
 class PolylinePage extends StatefulWidget {
-  static const String route = 'polyline';
-  double startlat;
-  double startlng;
-  double endlat;
-  double endlng;
-  PolylinePage({Key? key, required this.startlat,required this.startlng,required this.endlat,required this.endlng}) : super(key: key);
+ // late Future<List<Polyline>> polylines;
+ //  double startlat;
+ //  double startlng;
+ //  double endlat;
+ //  double endlng;
+ // List<LatLng> routePoints;
+  PolylinePage({Key? key}) : super(key: key);
   @override
   State<PolylinePage> createState() => _PolylinePageState();
 }
@@ -21,22 +23,16 @@ class _PolylinePageState extends State<PolylinePage> {
     final List<ORSCoordinate> routeCoordinates =
     await client.directionsRouteCoordsGet(
       startCoordinate: ORSCoordinate(
-          latitude: widget.startlat, longitude: widget.startlng),
+          latitude: startlat, longitude: startlng),
       endCoordinate: ORSCoordinate(
-          latitude: widget.endlat, longitude: widget.endlng),
+          latitude: destilat, longitude: destilng),
     );
-    List<LatLng> routePoints = routeCoordinates
+    setState(() {routePoints = routeCoordinates
         .map((coordinate) => LatLng(coordinate.latitude, coordinate.longitude))
-        .toList();
+        .toList();});
     final polyLines = [
       Polyline(
-        points: [LatLng(13, 77.5),
-          LatLng(13.02, 77.51),
-          LatLng(13.05, 77.53),
-          LatLng(13.155, 77.54),
-          LatLng(13.159, 77.55),
-          LatLng(13.17, 77.55),
-        ],
+        points: routePoints,
         strokeWidth: 4,
         color: Colors.blueAccent,
       ),
@@ -44,31 +40,15 @@ class _PolylinePageState extends State<PolylinePage> {
     await Future<void>.delayed(const Duration(seconds: 3));
     return polyLines;
   }
-
   @override
   void initState() {
     polylines = getPolylines();
     super.initState();
   }
-
   @override
   Widget build(BuildContext context) {
-    final points = [LatLng(13, 77.5),
-      LatLng(13.02, 77.51),
-      LatLng(13.05, 77.53),
-      LatLng(13.155, 77.54),
-      LatLng(13.159, 77.55),
-      LatLng(13.17, 77.55),
-    ];
-
-    final pointsGradient = [LatLng(13, 77.5),
-      LatLng(13.02, 77.51),
-      LatLng(13.05, 77.53),
-      LatLng(13.155, 77.54),
-      LatLng(13.159, 77.55),
-      LatLng(13.17, 77.55),
-    ];
-
+    final points = routePoints;
+    final pointsGradient = routePoints;
     return Scaffold(
       // appBar: AppBar(title: const Text('Polylines')),
         body: Padding(
@@ -77,85 +57,75 @@ class _PolylinePageState extends State<PolylinePage> {
             future: polylines,
             builder:
                 (BuildContext context, AsyncSnapshot<List<Polyline>> snapshot) {
-              debugPrint('snapshot: ${snapshot.hasData}');
-              if (snapshot.hasData) {
-                return Column(
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8, bottom: 8),
-                      child: Text('Polylines'),
-                    ),
-                    Flexible(
-                      child: FlutterMap(
-                        options: MapOptions(
-                          center: LatLng(13, 77.5),
-                          zoom: 14,
-                          onTap: (tapPosition, point) {
-                            setState(() {
-                              debugPrint('onTap');
-                              polylines = getPolylines();
-                            });
-                          },
+                  debugPrint('snapshot: ${snapshot.data}');
+                  if (snapshot.hasData) {
+                    return Column(
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8, bottom: 8),
+                          child: Text('Polylines'),
                         ),
-                        children: [
-                          MarkerLayer(
-                            markers: [
-                              Marker(
-                                point: LatLng(13, 77.5),
-                                width: 30,
-                                height: 30,
-                                builder: (context) =>
-                                    Icon(Icons.import_contacts_sharp),
+                        Flexible(
+                          child: FlutterMap(
+                            options: MapOptions(
+                              center: LatLng(startlat, startlng),
+                              zoom: 15,
+                              onTap: (tapPosition, point) {
+                                setState(() {
+                                  // debugPrint('onTap');
+                                  // polylines = getPolylines();
+                                });
+                              },
+                            ),
+                            children: [
+                              TileLayer(
+                                urlTemplate:
+                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                userAgentPackageName:
+                                'dev.fleaflet.flutter_map.example',
                               ),
-                              Marker(
-                                point: LatLng(13.17, 77.55),
-                                width: 30,
-                                height: 30,
-                                builder: (context) => FlutterLogo(size: 10,),
-                              ),
-                            ],
-                          ),
-                          TileLayer(
-                            urlTemplate:
-                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName:
-                            'dev.fleaflet.flutter_map.example',
-                          ),
-                          PolylineLayer(
-                            polylines: [
-                              Polyline(
-                                  points: points,
-                                  strokeWidth: 4,
-                                  color: Colors.purple),
-                            ],
-                          ),
-                          PolylineLayer(
-                            polylines: [
-                              Polyline(
-                                points: pointsGradient,
-                                strokeWidth: 4,
-                                gradientColors: [
-                                  const Color(0xffE40203),
-                                  const Color(0xffFEED00),
-                                  const Color(0xff007E2D),
+                              PolylineLayer(
+                                polylines: [
+                                  Polyline(
+                                      points: points,
+                                      strokeWidth: 4,
+                                      color: Colors.blue),
                                 ],
                               ),
+                              MarkerLayer(
+                                markers: [
+                                  Marker(
+                                    point: LatLng(startlat, startlng),
+                                    width: 2000,
+                                    height: 2000,
+                                    builder: (context) => Icon(Icons.location_on,
+                                    color: Colors.red,),
+                                  ),
+                                ],
+                              ),
+                              // PolylineLayer(
+                              //   polylines: [
+                              //     Polyline(
+                              //       points: pointsGradient,
+                              //       strokeWidth: 4,
+                              //       gradientColors: [
+                              //         Colors.blue
+                              //       ],
+                              //     ),
+                              //   ],
+                              // ),
+                              // PolylineLayer(
+                              //   polylines: snapshot.data!,
+                              //   polylineCulling: true,
+                              // ),
                             ],
                           ),
-                          PolylineLayer(
-                            polylines: snapshot.data!,
-                            polylineCulling: true,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              }
-              return const Text(
-                  'Getting map data...\n\nTap on map when complete to refresh map data.');
-            },
-          ),
+                        ),
+                      ],
+                    );
+                  }else{
+                  return Center(child: CircularProgressIndicator());
+                } }),
         ));
   }
 }

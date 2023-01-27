@@ -1,37 +1,30 @@
-import 'package:flutter/material.dart';
 import 'package:geocode/geocode.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:open_route_service/open_route_service.dart';
+import 'package:latlong2/latlong.dart';
 
-late final List<LatLng> routePoints;
+import '../main.dart';
 Future mapp(
-    double startLat,
-    double startlng,
-    double endlat,
-    double endlng,
+//     double startLat,
+//     double startlng,
+//     double endlat,
+//     double endlng,
+// List<LatLng> routePoints,
     ) async {
   final OpenRouteService client = OpenRouteService(apiKey: '5b3ce3597851110001cf62484df0bf4827b74ded8b68ccd2d5c570d1');
   final List<ORSCoordinate> routeCoordinates =
   await client.directionsRouteCoordsGet(
-    startCoordinate: ORSCoordinate(latitude: startLat, longitude: startlng),
-    endCoordinate: ORSCoordinate(latitude: endlat, longitude: endlng),
+    startCoordinate: ORSCoordinate(latitude: startlat, longitude: startlng),
+    endCoordinate: ORSCoordinate(latitude: destilat, longitude: destilng),
   );
   // routeCoordinates.forEach(print);
   // return routeCoordinates;
-  List<LatLng> routePoints = routeCoordinates
+   routePoints = routeCoordinates
       .map((coordinate) => LatLng(coordinate.latitude, coordinate.longitude))
       .toList();
-  final Polyline routePolyline = Polyline(
-    polylineId: PolylineId('route'),
-    visible: true,
-    points: routePoints,
-    color: Colors.red,
-    width: 4,
-  );
   GeoCode geoCode = GeoCode();
   routePoints.forEach((element) async { try {
     Address address = await geoCode.reverseGeocoding(latitude: element.latitude, longitude: element.longitude);
-    Future.delayed(Duration(milliseconds: 200));
+    Future.delayed(Duration(milliseconds: 50));
     print(" ${address.region} , ${address.streetAddress}");
   } catch (e) {
     // print(e);

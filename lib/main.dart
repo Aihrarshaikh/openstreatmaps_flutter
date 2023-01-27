@@ -3,10 +3,15 @@ import 'package:biker_app/maps_services/select_destination.dart';
 import 'package:biker_app/maps_services/select_start.dart';
 import 'package:biker_app/maps_services/show_routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:open_route_service/open_route_service.dart';
+import 'package:latlong2/latlong.dart';
 double startlat = 18.5204;
 double startlng = 73.8567;
 double destilat = 19.0760;
 double destilng = 72.8777;
+late Future<List<Polyline>> polylines;
+late  List<LatLng> routePoints;
 void main() {
   runApp(const MyApp());
 }
@@ -39,6 +44,34 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 class _MyHomePageState extends State<MyHomePage> {
+  Future<List<Polyline>> getPolylines() async {
+    final OpenRouteService client = OpenRouteService(
+        apiKey: '5b3ce3597851110001cf62484df0bf4827b74ded8b68ccd2d5c570d1');
+    final List<ORSCoordinate> routeCoordinates =
+    await client.directionsRouteCoordsGet(
+      startCoordinate: ORSCoordinate(
+          latitude: startlat, longitude: startlng),
+      endCoordinate: ORSCoordinate(
+          latitude: destilat, longitude: destilng),
+    );
+    setState(() {routePoints = routeCoordinates
+        .map((coordinate) => LatLng(coordinate.latitude, coordinate.longitude))
+        .toList();});
+    final polyLines = [
+      Polyline(
+        points: routePoints,
+        strokeWidth: 4,
+        color: Colors.blueAccent,
+      ),
+    ];
+    await Future<void>.delayed(const Duration(seconds: 3));
+    return polyLines;
+  }
+  @override
+  void initState() {
+    polylines = getPolylines();
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,13 +99,13 @@ class _MyHomePageState extends State<MyHomePage> {
           }
               , child: Text("select destination location")),
           ElevatedButton(onPressed: ()=>{
-            mapp(startlat, startlng, destilat, destiLng)
+            mapp()
           }
               , child: Text("get route data")),
           ElevatedButton(onPressed: ()=>{
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => PolylinePage(startlat:startlat, startlng: startlng, endlat: destilat, endlng: destilng)),
+              MaterialPageRoute(builder: (context) => PolylinePage()),
             )
           }
               , child: Text("select destination location")),

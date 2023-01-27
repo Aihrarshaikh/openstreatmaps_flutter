@@ -1,3 +1,4 @@
+import 'package:biker_app/Services/GetTrips.dart';
 import 'package:biker_app/maps_services/getroute_Data.dart';
 import 'package:biker_app/maps_services/select_destination.dart';
 import 'package:biker_app/maps_services/select_start.dart';
@@ -6,6 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:open_route_service/open_route_service.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:dio/dio.dart';
+import 'package:http/http.dart' as https;
+import 'package:biker_app/Services/APIservice_trips.dart';
+
+
 double startlat = 18.5204;
 double startlng = 73.8567;
 double destilat = 19.0760;
@@ -70,6 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     polylines = getPolylines();
+    APIservice_trip();
     super.initState();
   }
   @override
@@ -109,8 +116,13 @@ class _MyHomePageState extends State<MyHomePage> {
             )
           }
               , child: Text("select destination location")),
+          ElevatedButton(onPressed: ()=> {
+            createTrip('nametest2', "phonetest2")
+            }
+              , child: Text("API")),
         ],
       ),
     );
   }
 }
+
